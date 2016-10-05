@@ -56,21 +56,25 @@ fi
 
 # echo  mp3Path = $mp3Path, productId = $productId, name=$name
 
-# create directory ogg if not exists
-rm -r -f ./tempMedia/
-mkdir -p ./tempMedia
+locationOfScript=$(dirname "$(readlink -e "$0")")
 
-for file in ./$mp3Path/*.mp3; do 
+# create directory ogg if not exists
+rm -r -f "./tempMedia/"
+mkdir -p "./tempMedia"
+
+for file in "$mp3Path"/*.mp3; do 
 	echo "create ogg from file $file"
 	fname=$(basename "$file")
 	fdir=$(dirname "$file")
 	sox "$file" -r 22050 -c 1 "./tempMedia/${fname%.mp3}.ogg" gain -1;
 done
 
+
 # remove invalid chars like space
 rename "s/ //g" ./tempMedia/*.ogg
 rename "s/-/_/g" ./tempMedia/*.ogg
 rename "s/[^\w\.\/]/_/g" ./tempMedia/*.ogg
+
 
 # read -p "product-id:" productid
 productid=$productId
@@ -119,7 +123,7 @@ done
 
 
 # copy global media files
-cp ./globalMedia/* ./tempMedia
+cp "$locationOfScript"/globalMedia/* ./tempMedia
 
 echo "create $name.gme"
 $tttoolsPath/tttool assemble $name.yaml 
