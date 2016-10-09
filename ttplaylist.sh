@@ -134,7 +134,7 @@ done
 oIdCode=$oIdMin
 echo "" >> "$fileYaml"
 echo "speak:" >> "$fileYaml"
-echo "  hello: \"Hallo\"" >> "$fileYaml"
+echo "  hello: \"${name}\"" >> "$fileYaml"
 echo "  info: \"Info\"" >> "$fileYaml"
 echo "  nix: \"Nix\"" >> "$fileYaml"
 for file in "$mp3Path"/*.mp3; do 
@@ -147,10 +147,10 @@ done
 # cp "$locationOfScript"/globalMedia/* ./tempMedia
 
 echo "create $name.gme"
-$tttoolsPath/tttool assemble "${name}.yaml" 
+$tttoolsPath/tttool assemble "$fileYaml"
 
 #echo "create $name.pdf"
-#$tttoolsPath/tttool oid-table "${name}.yaml" 
+#$tttoolsPath/tttool oid-table "$fileYaml"
 
 echo "create $productId.png"
 $tttoolsPath/tttool oid-code $productId
