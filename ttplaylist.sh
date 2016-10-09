@@ -54,21 +54,24 @@ if  ! [[ "$productId" =~ $re ]] || [[ "$productId" -lt 1 ]] || [[ "$productId" -
   error "Argument productId need to be a number bettween 1 and 1000"
 fi
 
-# echo  mp3Path = $mp3Path, productId = $productId, name=$name
+echo  mp3Path = $mp3Path, productId = $productId, name=$name
 
 locationOfScript=$(dirname "$(readlink -e "$0")")
 
-# create directory ogg if not exists
-rm -r -f "./tempMedia/"
-mkdir -p "./tempMedia"
+rebuildTempMedia=true
 
-for file in "$mp3Path"/*.mp3; do 
-	echo "create ogg from file $file"
-	fname=$(basename "$file")
-	fdir=$(dirname "$file")
-	sox "$file" -r 22050 -c 1 "./tempMedia/${fname%.mp3}.ogg" gain -1;
-done
+if [[ $rebuildTempMedia == true ]]; then
+	# create directory ogg if not exists
+	rm -r -f "./tempMedia/"
+	mkdir -p "./tempMedia"
 
+	for file in "$mp3Path"/*.mp3; do 
+		echo "create ogg from file $file"
+		fname=$(basename "$file")
+		fdir=$(dirname "$file")
+		sox "$file" -r 22050 -c 1 "./tempMedia/${fname%.mp3}.ogg" gain -1;
+	done
+fi
 
 # remove invalid chars like space
 rename "s/ //g" ./tempMedia/*.ogg
@@ -80,62 +83,63 @@ rename "s/[^\w\.\/]/_/g" ./tempMedia/*.ogg
 productid=$productId
 
 # create a variable to represent the filename
-fileYaml="$name.yaml"
+fileYaml="${name}.yaml"
 oIdMin=9001
 oIdMax=9065
 oIdCode=$oIdMin
 
+echo "create1 ${name}.yaml"
 echo "create $fileYaml"
 
 # write to the file
-echo "product-id: $productid" > $fileYaml
-echo "media-path: tempMedia/%s" >> $fileYaml
-echo "language: de" >> $fileYaml
-echo "welcome: hello" >> $fileYaml
-echo "init: \$currentSong:=$oIdCode" >> $fileYaml
+echo "product-id: $productid" >> "$fileYaml"
+echo "media-path: tempMedia/%s" >> "$fileYaml"
+echo "language: de" >> "$fileYaml"
+echo "welcome: hello" >> "$fileYaml"
+echo "init: \$currentSong:=$oIdCode" >> "$fileYaml"
 
-echo "scripts:" >> $fileYaml
+echo "scripts:" >> "$fileYaml"
 
 
-echo "  8000:" >> $fileYaml
-echo "    - \$info:=0 \$autoPlay:=1 J($oIdMin)" >> $fileYaml
+echo "  8000:" >> "$fileYaml"
+echo "    - \$info:=0 \$autoPlay:=1 J($oIdMin)" >> "$fileYaml"
 
-echo "  8001:" >> $fileYaml
-echo "    - \$info:=1 \$autoPlay:=0 P(info)" >> $fileYaml
+echo "  8001:" >> "$fileYaml"
+echo "    - \$info:=1 \$autoPlay:=0 P(info)" >> "$fileYaml"
 
-echo "  8002:" >> $fileYaml
-echo "    - \$currentSong>$oIdMin? \$currentSong-=1 J(\$currentSong)" >> $fileYaml
-echo "    - P(nix)" >> $fileYaml
+echo "  8002:" >> "$fileYaml"
+echo "    - \$currentSong>$oIdMin? \$currentSong-=1 J(\$currentSong)" >> "$fileYaml"
+echo "    - P(nix)" >> "$fileYaml"
 
-echo "  8003:" >> $fileYaml
-echo "    - \$currentSong<$oIdMax? \$currentSong+=1 J(\$currentSong)" >> $fileYaml
-echo "    - P(nix)" >> $fileYaml
+echo "  8003:" >> "$fileYaml"
+echo "    - \$currentSong<$oIdMax? \$currentSong+=1 J(\$currentSong)" >> "$fileYaml"
+echo "    - P(nix)" >> "$fileYaml"
 
 for file in ./tempMedia/*.ogg; do 
   fname=$(basename "$file")
-  echo "  $oIdCode:" >> $fileYaml
-  echo "    - \$info==1? P($oIdCode)" >> $fileYaml
-  echo "    - \$autoPlay==1? \$currentSong:=$oIdCode P(${fname%.ogg}) J($(($oIdCode+1)))" >> $fileYaml
-  echo "    - \$currentSong:=$oIdCode P(${fname%.ogg})" >> $fileYaml
+  echo "  $oIdCode:" >> "$fileYaml"
+  echo "    - \$info==1? P($oIdCode)" >> "$fileYaml"
+  echo "    - \$autoPlay==1? \$currentSong:=$oIdCode P(${fname%.ogg}) J($(($oIdCode+1)))" >> "$fileYaml"
+  echo "    - \$currentSong:=$oIdCode P(${fname%.ogg})" >> "$fileYaml"
 
   ((oIdCode++))
 done
 
 for (( missingOIDCode=$oIdCode; missingOIDCode<=$oIdMax; missingOIDCode++)) 
 do
-  echo "  $missingOIDCode:" >> $fileYaml
-  echo "    - \$autoPlay:=0 P(nix)"  >> $fileYaml
+  echo "  $missingOIDCode:" >> "$fileYaml"
+  echo "    - \$autoPlay:=0 P(nix)"  >> "$fileYaml"
 done
 
 oIdCode=$oIdMin
-echo "" >> $fileYaml
-echo "speak:" >> $fileYaml
-echo "  hello: \"Hallo\"" >> $fileYaml
-echo "  info: \"Info\"" >> $fileYaml
-echo "  nix: \"Nix\"" >> $fileYaml
+echo "" >> "$fileYaml"
+echo "speak:" >> "$fileYaml"
+echo "  hello: \"Hallo\"" >> "$fileYaml"
+echo "  info: \"Info\"" >> "$fileYaml"
+echo "  nix: \"Nix\"" >> "$fileYaml"
 for file in "$mp3Path"/*.mp3; do 
   fname=$(basename "$file")
-  echo "  $oIdCode: \"${fname%.mp3}\"" >> $fileYaml
+  echo "  $oIdCode: \"${fname%.mp3}\"" >> "$fileYaml"
   ((oIdCode++))
 done
 
@@ -143,10 +147,10 @@ done
 # cp "$locationOfScript"/globalMedia/* ./tempMedia
 
 echo "create $name.gme"
-$tttoolsPath/tttool assemble $name.yaml 
+$tttoolsPath/tttool assemble "${name}.yaml" 
 
 #echo "create $name.pdf"
-#$tttoolsPath/tttool oid-table $name.yaml
+#$tttoolsPath/tttool oid-table "${name}.yaml" 
 
 echo "create $productId.png"
 $tttoolsPath/tttool oid-code $productId
