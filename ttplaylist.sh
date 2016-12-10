@@ -57,26 +57,36 @@ fi
 echo  mp3Path = $mp3Path, productId = $productId, name=$name
 
 locationOfScript=$(dirname "$(readlink -e "$0")")
+tempMedia="./Media_$name"
 
+# for debugging only
 rebuildTempMedia=true
 
 if [[ $rebuildTempMedia == true ]]; then
 	# create directory ogg if not exists
-	rm -r -f "./tempMedia/"
-	mkdir -p "./tempMedia"
+	rm -r -f "${tempMedia}/"
+	mkdir -p "${tempMedia}"
 
 	for file in "$mp3Path"/*.mp3; do 
 		echo "create ogg from file $file"
 		fname=$(basename "$file")
 		fdir=$(dirname "$file")
-		sox "$file" -r 22050 -c 1 "./tempMedia/${fname%.mp3}.ogg" gain -1;
+		sox "$file" -r 22050 -c 1 "${tempMedia}/${fname%.mp3}.ogg" gain -1;
 	done
 fi
 
-# remove invalid chars like space
-rename "s/ //g" ./tempMedia/*.ogg
-rename "s/-/_/g" ./tempMedia/*.ogg
-rename "s/[^\w\.\/]/_/g" ./tempMedia/*.ogg
+# remove spaces and replays invalid chars
+curDir=$PWD
+# echo "curDir $curDir"
+cd "${tempMedia}/"
+# echo "tempMedia $PWD"
+
+rename "s/ //g" *.ogg
+rename "s/[^\w\.\/]/_/g" *.ogg
+rename "s/-/_/g" *.ogg
+
+
+cd "${curDir}"
 
 
 # read -p "product-id:" productid
@@ -88,12 +98,11 @@ oIdMin=9001
 oIdMax=9065
 oIdCode=$oIdMin
 
-echo "create1 ${name}.yaml"
 echo "create $fileYaml"
 
 # write to the file
 echo "product-id: $productid" >> "$fileYaml"
-echo "media-path: tempMedia/%s" >> "$fileYaml"
+echo "media-path: ${tempMedia}/%s" >> "$fileYaml"
 echo "language: de" >> "$fileYaml"
 echo "welcome: hello" >> "$fileYaml"
 echo "init: \$currentSong:=$oIdCode" >> "$fileYaml"
@@ -115,7 +124,7 @@ echo "  8003:" >> "$fileYaml"
 echo "    - \$currentSong<$oIdMax? \$currentSong+=1 J(\$currentSong)" >> "$fileYaml"
 echo "    - P(nix)" >> "$fileYaml"
 
-for file in ./tempMedia/*.ogg; do 
+for file in "${tempMedia}"/*.ogg; do 
   fname=$(basename "$file")
   echo "  $oIdCode:" >> "$fileYaml"
   echo "    - \$info==1? P($oIdCode)" >> "$fileYaml"
@@ -144,7 +153,7 @@ for file in "$mp3Path"/*.mp3; do
 done
 
 # copy global media files
-# cp "$locationOfScript"/globalMedia/* ./tempMedia
+# cp "$locationOfScript"/globalMedia/* "${tempMedia}
 
 echo "create $name.gme"
 $tttoolsPath/tttool assemble "$fileYaml"
