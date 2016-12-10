@@ -66,6 +66,6 @@ tttool play ./exampleProject.gme
 - scan OID
 
 ## TODOs
-[] Image for player controls
+- [ ] Image for player controls
 
-[] Image for tracks 1 - n
+- [ ] Image for tracks 1 - n
