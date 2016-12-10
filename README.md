@@ -1,5 +1,5 @@
 # ttplaylist
-Create a playlist of mp3 file collections into the TipToi pen format.
+Create a playlist of mp3 file collections into TipToi pen format.
 
 Convert any folder with mp3s to a gme file.
 
@@ -14,17 +14,17 @@ tttool mp3 playlist creater -v0.1
 
   -i Use this product id
   
-  -n Name of the created playlist
+  -n Name of created playlist
   
   -t Path of tttools
   
-  -h Show this help text
+  -h Show help text
   
 ## Example
 
 ### Comand
 '/home/tobiak/workspace/ttplaylist/ttplaylist.sh' -n exampleProject -i 42 -t '/home/tobiak/tttool/'
--m '/home/tobiak/Musik/Kinder/Rotz '\''n'\'' Roll Radio/Partypiepel' 
+-m '/home/tobiak/Musik/Kinder/Party CD1' 
 
 ### Result
 
@@ -56,7 +56,7 @@ tttool play ./exampleProject.gme
 
 ...
 
-- 9065: Play trak 65
+- 9065: Play track 65
 
 ## Play musik on TipToi pen
 - copy gme file on pen
